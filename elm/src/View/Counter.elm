@@ -29,5 +29,7 @@ view address model =
       [ text (toString model) ]
     , button
       [ class "btn btn-default"
-      , onClick address U.Increment ] [ text "+" ]
+      , onClick address U.Increment 
+      ]
+      [ text "+" ]
     ]

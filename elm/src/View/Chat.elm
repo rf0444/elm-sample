@@ -2,8 +2,10 @@ module View.Chat
   ( view
   ) where
 
-import Debug
+import Date
+import Date.Format
 import Json.Decode as JD
+import Time
 import Html
 import Html.Attributes as HA
 import Html.Events as HE
@@ -31,12 +33,12 @@ view address model =
           [ HA.class "row"
           , HA.style [ ("padding", "0 20px 10px 0") ]
           ]
-          [ showUser c.name ]
+          [ Html.Lazy.lazy showUser c.name ]
         , Html.div
           [ HA.class "row"
           , HA.style [ ("padding", "10px") ]
           ]
-          [ post address c ]
+          [ Html.Lazy.lazy2 post address c ]
         , Html.div
           [ HA.class "row"
           , HA.style [ ("padding", "10px") ]
@@ -153,15 +155,19 @@ list posts =
     toTr post = Html.tr []
       [ Html.td [] [ Html.text (post.user) ]
       , Html.td [] [ Html.text (post.content) ]
-      , Html.td [] [ Html.text (toString post.time) ]
+      , Html.td [] [ Html.text (timeToString post.time) ]
       ]
   in
     Html.table
       [ HA.class "table" ]
       [ Html.thead []
-        [ Html.th [ HA.style [ ("width", "100px") ] ] [ Html.text "user" ]
+        [ Html.th [ HA.style [ ("width", "200px") ] ] [ Html.text "user" ]
         , Html.th [ HA.style [ ("width", "auto" ) ] ] [ Html.text "content" ]
-        , Html.th [ HA.style [ ("width", "100px") ] ] [ Html.text "timestamp" ]
+        , Html.th [ HA.style [ ("width", "200px") ] ] [ Html.text "timestamp" ]
         ]
       , Html.tbody [] <| List.map toTr posts
       ]
+
+timeToString : Time.Time -> String
+timeToString =
+  Date.Format.format "%Y/%m/%d %H:%M:%S" << Date.fromTime

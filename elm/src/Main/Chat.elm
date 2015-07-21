@@ -21,17 +21,45 @@ address = Signal.forwardTo actions.address Just
 model : Signal M.Model
 model = Signal.map fst modelWithTask
 
-modelWithTask : Signal (M.Model, Maybe (Task.Task U.Action U.Action))
+modelWithTask : Signal (M.Model, Maybe U.Task)
 modelWithTask = Signal.foldp
   (\(Just action) (model, _) -> U.update action model)
   (M.init, Nothing)
   actions.signal
 
-port tasks : Signal (Task.Task () ())
-port tasks =
+port handleTasks : Signal (Task.Task () ())
+port handleTasks =
   let
-    send : Task.Task U.Action U.Action -> Task.Task () ()
-    send task = task `Task.andThen` Signal.send address `Task.onError` Signal.send address
-    withDefault = Maybe.withDefault (Task.succeed ())
+    exec : U.Task -> Task.Task () ()
+    exec task = case task of
+      U.Request task ->
+        task `Task.andThen` Signal.send address `Task.onError` Signal.send address
+      U.MqttConnect info ->
+        Signal.send connectToMqtt.address (Just info)
+      U.MqttSend s ->
+        Signal.send sendToMqtt.address s
   in
-    Signal.map (withDefault << Maybe.map send << snd) modelWithTask
+    Signal.filterMap (Maybe.map exec << snd) (Task.succeed ()) modelWithTask
+
+connectToMqtt : Signal.Mailbox (Maybe U.MqttInfo)
+connectToMqtt = Signal.mailbox Nothing
+
+sendToMqtt : Signal.Mailbox String
+sendToMqtt = Signal.mailbox ""
+
+port mqttConnect : Signal (Maybe U.MqttInfo)
+port mqttConnect = connectToMqtt.signal
+
+port mqttSend : Signal String
+port mqttSend = sendToMqtt.signal
+
+port mqttMessageArrived : Signal String
+port mqttConnected : Signal ()
+
+port handleMqttMessageArrived : Signal (Task.Task () ())
+port handleMqttMessageArrived =
+  Signal.map (Signal.send address << U.MessageArrived) mqttMessageArrived
+
+port handleMqttConnected : Signal (Task.Task () ())
+port handleMqttConnected =
+  Signal.map (\_ -> Signal.send address U.Connected) mqttConnected

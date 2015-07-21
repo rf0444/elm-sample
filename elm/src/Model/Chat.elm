@@ -1,6 +1,7 @@
 module Model.Chat
   ( Model(..)
   , NotConnectedState
+  , ConnectingState
   , ConnectedState
   , Post
   , ConnectionForm
@@ -12,6 +13,7 @@ import Time exposing (Time)
 
 type Model
   = NotConnected NotConnectedState
+  | Connecting ConnectingState
   | Connected ConnectedState
 
 type alias NotConnectedState =
@@ -19,6 +21,10 @@ type alias NotConnectedState =
   }
 
 type alias ConnectionForm =
+  { name : String
+  }
+
+type alias ConnectingState =
   { name : String
   }
 

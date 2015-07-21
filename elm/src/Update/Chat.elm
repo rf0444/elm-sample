@@ -3,54 +3,95 @@ module Update.Chat
   , update
   ) where
 
+import Json.Decode as JD
+import Task
 import Time exposing (Time)
+import Http
+
 import Model.Chat as M
 
 type Action
   = ConnectionFormInput (M.ConnectionForm -> M.ConnectionForm)
   | Connect
+  | ConnectError
+  | Connected
   | PostFormInput (M.PostForm -> M.PostForm)
   | Post Time
 
-update : Action -> M.Model -> M.Model
+update : Action -> M.Model -> (M.Model, Maybe (Task.Task Action Action))
 update action model =
   case (model, action) of
-    (M.NotConnected m, ConnectionFormInput f) ->
-      M.NotConnected
-        { m |
-          form <- f m.form
-        }
-    (M.NotConnected m, Connect) ->
-      if m.form.name == ""
+    (M.NotConnected state, ConnectionFormInput f) ->
+      let
+        next = M.NotConnected
+          { state |
+            form <- f state.form
+          }
+        task = Nothing
+      in
+        (next, task)
+    (M.NotConnected state, Connect) ->
+      if state.form.name == ""
         then
-          model
+          (model, Nothing)
         else
-          M.Connected
-            { name = m.form.name
-            , form = { content = "" }
-            , posts = []
-            }
-    (M.Connected m, PostFormInput f) ->
-      M.Connected
-        { m |
-          form <- f m.form
-        }
-    (M.Connected m, Post t) ->
-      if m.form.content == ""
+          let
+            next = M.Connecting
+              { name = state.form.name
+              }
+            task = Just
+              << Task.mapError (\_ -> ConnectError)
+              << Task.map (\_ -> Connected)
+              <| Http.get JD.value "/api/mqtt"
+          in
+            (next, task)
+    (M.Connecting state, ConnectError) ->
+      let
+        next = M.Connected
+          { name = state.name
+          , form = { content = "" }
+          , posts = []
+          }
+        task = Nothing
+      in
+        (next, task)
+    (M.Connecting state, Connected) ->
+      let
+        next = M.Connected
+          { name = state.name
+          , form = { content = "" }
+          , posts = []
+          }
+        task = Nothing
+      in
+        (next, task)
+    (M.Connected state, PostFormInput f) ->
+      let
+        next = M.Connected
+          { state |
+            form <- f state.form
+          }
+        task = Nothing
+      in
+        (next, task)
+    (M.Connected state, Post t) ->
+      if state.form.content == ""
         then
-          model
+          (model, Nothing)
         else
           let
             post =
-              { user = m.name
+              { user = state.name
               , time = t
-              , content = m.form.content
+              , content = state.form.content
               }
-          in
-            M.Connected
-              { m |
+            next = M.Connected
+              { state |
                 form <- { content = "" }
-              , posts <- post :: m.posts
+              , posts <- post :: state.posts
               }
-    _     ->
-      model
+            task = Nothing
+          in
+            (next, task)
+    _ ->
+      (model, Nothing)

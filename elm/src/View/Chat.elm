@@ -21,6 +21,11 @@ view address model =
           [ HA.class "row" ]
           [ userInput address ]
         ]
+      M.Connecting _ ->
+        [ Html.div
+          [ HA.class "row" ]
+          [ Html.text "connecting..." ]
+        ]
       M.Connected c ->
         [ Html.div
           [ HA.class "row"
@@ -84,7 +89,7 @@ userInput address =
           ]
         , HE.onClick address U.Connect
         ]
-        [ Html.text "Start" ]
+        [ Html.text "Connect" ]
       ]
     ]
 

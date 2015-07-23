@@ -1,13 +1,13 @@
-module Update.Chat
+module Chat.Update
   ( update
   ) where
 
 import Json.Decode as JD
 import Json.Decode exposing ((:=))
 
-import Action.Chat as A
-import Model.Chat as M
-import Task.Chat as T
+import Chat.Action as A
+import Chat.Model as M
+import Chat.Task as T
 
 update : A.Action -> M.Model -> (M.Model, Maybe T.Task)
 update action model =

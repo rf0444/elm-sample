@@ -1,17 +1,17 @@
-module Main.Chat
+module Chat.Main
   ( main
   ) where
 
 import Html
 import Task
 
-import Action.Chat as A
+import Chat.Action as A
+import Chat.Model as M
+import Chat.Task as T
+import Chat.Update as U
+import Chat.View as V
 import Lib.App as App
 import Lib.Mqtt as Mqtt
-import Model.Chat as M
-import Task.Chat as T
-import Update.Chat as U
-import View.Chat as V
 
 actions : Signal.Mailbox (Maybe A.Action)
 actions = Signal.mailbox Nothing

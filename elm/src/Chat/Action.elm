@@ -1,12 +1,12 @@
-module Action.Chat
+module Chat.Action
   ( Action(..)
   ) where
 
 import Http
 import Time exposing (Time)
 
+import Chat.Model as M
 import Lib.Mqtt as Mqtt
-import Model.Chat as M
 
 type Action
   = ConnectionFormInput (M.ConnectionForm -> M.ConnectionForm)

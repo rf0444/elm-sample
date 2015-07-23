@@ -1,4 +1,4 @@
-module Task.Chat
+module Chat.Task
   ( Task(..)
   , exec
   ) where
@@ -10,9 +10,9 @@ import Json.Encode as JE
 import Result
 import Task as T
 
-import Action.Chat as A
+import Chat.Action as A
+import Chat.Model as M
 import Lib.Mqtt as Mqtt
-import Model.Chat as M
 
 type Task
   = RequestMqtt

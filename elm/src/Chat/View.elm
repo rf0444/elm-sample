@@ -1,4 +1,4 @@
-module View.Chat
+module Chat.View
   ( view
   ) where
 
@@ -11,8 +11,8 @@ import Html.Lazy
 import Json.Decode as JD
 import Time
 
-import Action.Chat as A
-import Model.Chat as M
+import Chat.Action as A
+import Chat.Model as M
 
 view : Signal.Address A.Action -> M.Model -> Html.Html
 view address model =

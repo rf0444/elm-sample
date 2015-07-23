@@ -1,5 +1,5 @@
 (function() { "use strict";
-	var app = Elm.embed(Elm.Main.Chat, document.getElementById("main"), {
+	var app = Elm.embed(Elm.Chat.Main, document.getElementById("main"), {
 		mqttMessageArrived: "",
 		mqttConnected: []
 	});
@@ -28,7 +28,7 @@
 		});
 	});
 	app.ports.mqttSend.subscribe(function(s) {
-		if (mqttClient == null || s == "") {
+		if (mqttClient == null || s == null || s == "") {
 			return;
 		}
 		var message = new Paho.MQTT.Message(s);

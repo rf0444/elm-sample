@@ -1,4 +1,4 @@
-module Model.Chat
+module Chat.Model
   ( Model(..)
   , NotConnectedState
   , ConnectingState

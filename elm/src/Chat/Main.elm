@@ -23,8 +23,8 @@ app = App.create
 main : Signal Html.Html
 main = app.main
 
-toJs : App.Actions String
-toJs = App.createActions Nothing
+toJs : Signal.Mailbox JE.Value
+toJs = Signal.mailbox JE.null
 
 taskContext : T.Context
 taskContext =
@@ -34,7 +34,7 @@ taskContext =
 
 port toElm : Signal JE.Value
 
-port fromElm : Signal (Maybe String)
+port fromElm : Signal JE.Value
 port fromElm = toJs.signal
 
 port execTask : Signal (Task.Task () ())

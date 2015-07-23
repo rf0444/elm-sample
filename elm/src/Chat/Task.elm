@@ -16,7 +16,7 @@ import Chat.Model as M
 
 type alias Context =
   { address : Signal.Address A.Action
-  , js : Signal.Address String
+  , js : Signal.Address JE.Value
   }
 
 exec : Context -> A.Task -> T.Task () ()
@@ -30,13 +30,11 @@ exec context task = case task of
       task `T.andThen` Signal.send context.address `T.onError` Signal.send context.address
   A.MqttConnect info ->
     Signal.send context.js
-      << toJsonString
       << withType "connect"
       << wrap ("destination", JE.string "/chat") "info"
       <| mqttInfoToJValue info
   A.MqttSend post ->
     Signal.send context.js
-      << toJsonString
       << withType "send"
       << wrap ("destination", JE.string "/chat") "message"
       << JE.string
@@ -100,9 +98,6 @@ jsonStringToPost =
       ("content" := JD.string)
   in
     Result.toMaybe << JD.decodeString dec
-
-toJsonString : JE.Value -> String
-toJsonString = JE.encode 0
 
 mqttInfoToJValue : A.MqttInfo -> JE.Value
 mqttInfoToJValue info = JE.object

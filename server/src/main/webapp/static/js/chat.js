@@ -16,7 +16,7 @@
 			onSuccess: function() {
 				client.subscribe(data.destination, {
 					qos: 0,
-                    onSuccess: function() {
+					onSuccess: function() {
 						mqttClient = client;
 						app.ports.toElm.send({ type: "connected" });
 					}
@@ -34,11 +34,10 @@
 		message.retained = false;
 		mqttClient.send(message);
 	};
-	app.ports.fromElm.subscribe(function(str) {
-		if (str == null || str == "") {
+	app.ports.fromElm.subscribe(function(data) {
+		if (data == null) {
 			return;
 		}
-		var data = JSON.parse(str);
 		switch (data.type) {
 		case "connect":
 			connect(data.data);

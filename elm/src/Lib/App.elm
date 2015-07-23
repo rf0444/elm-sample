@@ -9,7 +9,6 @@ import Task
 
 type alias App action =
   { main : Signal Html.Html
-  , address : Signal.Address action
   , ports :
     { task: Signal (Task.Task () ())
     }
@@ -18,39 +17,34 @@ type alias App action =
 type alias Model model = model
 
 type alias AppOption model action task =
-  { model : model
+  { signal : Signal (Maybe action)
+  , address : Signal.Address action
+  , model : model
   , update : action -> model -> (model, Maybe task)
-  , exec : task -> Task.Task () ()
   , view : Signal.Address action -> model -> Html.Html
+  , task : task -> Task.Task () ()
   }
 
 create : AppOption model action task -> App action
 create option =
   let
-    --actions : Signal.Mailbox (Maybe action)
-    actions = Signal.mailbox Nothing
-    
-    --address : Signal.Address action
-    address = Signal.forwardTo actions.address Just
-    
-    --model : Signal model
-    model = Signal.map fst modelWithTask
-    
     --modelWithTask : Signal (model, Maybe task)
     modelWithTask = Signal.foldp
       (\(Just action) (model, _) -> option.update action model)
       (option.model, Nothing)
-      actions.signal
+      option.signal
     
-    handleTask : Signal (Task.Task () ())
-    handleTask = Signal.filterMap (Maybe.map option.exec << snd) (Task.succeed ()) modelWithTask
+    --model : Signal model
+    model = Signal.map fst modelWithTask
+    
+    execTask : Signal (Task.Task () ())
+    execTask = Signal.filterMap (Maybe.map option.task << snd) (Task.succeed ()) modelWithTask
     
     main : Signal Html.Html
-    main = Signal.map (option.view address) model
+    main = Signal.map (option.view option.address) model
   in
     { main = main
-    , address = address
     , ports =
-      { task = handleTask
+      { task = execTask
       }
     }

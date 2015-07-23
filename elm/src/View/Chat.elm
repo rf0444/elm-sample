@@ -4,17 +4,17 @@ module View.Chat
 
 import Date
 import Date.Format
-import Json.Decode as JD
-import Time
 import Html
 import Html.Attributes as HA
 import Html.Events as HE
 import Html.Lazy
+import Json.Decode as JD
+import Time
 
+import Action.Chat as A
 import Model.Chat as M
-import Update.Chat as U
 
-view : Signal.Address U.Action -> M.Model -> Html.Html
+view : Signal.Address A.Action -> M.Model -> Html.Html
 view address model =
   let
     children = case model of
@@ -48,7 +48,7 @@ view address model =
   in
     Html.div [ HA.class "container" ] children
 
-userInput : Signal.Address U.Action -> Html.Html
+userInput : Signal.Address A.Action -> Html.Html
 userInput address =
   Html.div
     [ HA.style
@@ -67,7 +67,7 @@ userInput address =
         , HE.on "input" HE.targetValue
           (\x ->
             Signal.message address
-              (U.ConnectionFormInput
+              (A.ConnectionFormInput
                 (\form ->
                   { form | name <- x }
                 )
@@ -89,7 +89,7 @@ userInput address =
           [ ("display", "block")
           , ("width", "100%")
           ]
-        , HE.onClick address U.Connect
+        , HE.onClick address A.Connect
         ]
         [ Html.text "Connect" ]
       ]
@@ -101,7 +101,7 @@ showUser name =
     [ HA.style [ ("text-align", "right") ]]
     [ Html.text ("user: " ++ name) ]
 
-post : Signal.Address U.Action -> M.ConnectedState -> Html.Html
+post : Signal.Address A.Action -> M.ConnectedState -> Html.Html
 post address model =
   Html.div
     [ HA.style
@@ -121,7 +121,7 @@ post address model =
         , HE.on "input" HE.targetValue
           (\x ->
             Signal.message address
-              (U.PostFormInput
+              (A.PostFormInput
                 (\form ->
                   { form | content <- x }
                 )
@@ -143,7 +143,7 @@ post address model =
           [ ("display", "block")
           , ("width", "100%")
           ]
-        , HE.on "click" (JD.at ["timeStamp"] JD.float) (Signal.message address << U.Post)
+        , HE.on "click" (JD.at ["timeStamp"] JD.float) (Signal.message address << A.Post)
         ]
         [ Html.text "Post" ]
       ]

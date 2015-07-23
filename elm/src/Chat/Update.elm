@@ -7,9 +7,8 @@ import Json.Decode exposing ((:=))
 
 import Chat.Action as A
 import Chat.Model as M
-import Chat.Task as T
 
-update : A.Action -> M.Model -> (M.Model, Maybe T.Task)
+update : A.Action -> M.Model -> (M.Model, Maybe A.Task)
 update action model =
   case (model, action) of
     (M.NotConnected state, A.ConnectionFormInput f) ->
@@ -30,7 +29,7 @@ update action model =
             next = M.Connecting
               { name = state.form.name
               }
-            task = Just T.RequestMqtt
+            task = Just A.RequestMqtt
           in
             (next, task)
     (M.Connecting state, A.ResponseError _) ->
@@ -46,7 +45,7 @@ update action model =
     (M.Connecting state, A.MqttInfoResponse info) ->
       let
         next = M.Connecting state
-        task = Just (T.MqttConnect info)
+        task = Just (A.MqttConnect info)
       in
         (next, task)
     (M.Connecting state, A.Connected) ->
@@ -83,7 +82,7 @@ update action model =
               { state |
                 form <- { content = "" }
               }
-            task = Just (T.MqttSend post)
+            task = Just (A.MqttSend post)
           in
             (next, task)
     (M.Connected state, A.MessageArrived s) ->

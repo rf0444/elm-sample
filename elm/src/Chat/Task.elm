@@ -1,5 +1,5 @@
 module Chat.Task
-  ( Task(..)
+  ( Context
   , exec
   ) where
 
@@ -14,11 +14,6 @@ import Chat.Action as A
 import Chat.Model as M
 import Lib.Mqtt as Mqtt
 
-type Task
-  = RequestMqtt
-  | MqttConnect Mqtt.MqttInfo
-  | MqttSend M.Post
-
 type alias Context =
   { address : Signal.Address A.Action
   , mqtt :
@@ -27,18 +22,18 @@ type alias Context =
     }
   }
 
-exec : Context -> Task -> T.Task () ()
+exec : Context -> A.Task -> T.Task () ()
 exec context task = case task of
-  RequestMqtt ->
+  A.RequestMqtt ->
     let
       task = Http.get mqttInfoDecoder "/api/mqtt"
         |> T.map A.MqttInfoResponse
         |> T.mapError A.ResponseError
     in
       task `T.andThen` Signal.send context.address `T.onError` Signal.send context.address
-  MqttConnect info ->
+  A.MqttConnect info ->
     Signal.send context.mqtt.connect info
-  MqttSend post ->
+  A.MqttSend post ->
     Signal.send context.mqtt.send <| postToJsonString post
 
 mqttInfoDecoder : JD.Decoder Mqtt.MqttInfo

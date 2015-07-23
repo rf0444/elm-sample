@@ -1,5 +1,6 @@
 module Chat.Action
   ( Action(..)
+  , Task(..)
   ) where
 
 import Http
@@ -17,3 +18,8 @@ type Action
   | MessageArrived String
   | PostFormInput (M.PostForm -> M.PostForm)
   | Post Time
+
+type Task
+  = RequestMqtt
+  | MqttConnect Mqtt.MqttInfo
+  | MqttSend M.Post

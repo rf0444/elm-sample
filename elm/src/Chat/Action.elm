@@ -1,5 +1,6 @@
 module Chat.Action
-  ( Action(..)
+  ( MqttInfo
+  , Action(..)
   , Task(..)
   ) where
 
@@ -7,19 +8,26 @@ import Http
 import Time exposing (Time)
 
 import Chat.Model as M
-import Lib.Mqtt as Mqtt
+
+type alias MqttInfo =
+  { host : String
+  , port_ : Int
+  , clientId : String
+  , username : String
+  , password : String
+  }
 
 type Action
   = ConnectionFormInput (M.ConnectionForm -> M.ConnectionForm)
   | Connect
-  | MqttInfoResponse Mqtt.MqttInfo
+  | MqttInfoResponse MqttInfo
   | ResponseError Http.Error
   | Connected
-  | MessageArrived String
+  | PostArrived M.Post
   | PostFormInput (M.PostForm -> M.PostForm)
   | Post Time
 
 type Task
   = RequestMqtt
-  | MqttConnect Mqtt.MqttInfo
+  | MqttConnect MqttInfo
   | MqttSend M.Post

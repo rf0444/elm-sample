@@ -85,33 +85,14 @@ update action model =
             task = Just (A.MqttSend post)
           in
             (next, task)
-    (M.Connected state, A.MessageArrived s) ->
+    (M.Connected state, A.PostArrived post) ->
       let
-        mpost = jsonStringToPost s
-        next = Maybe.withDefault model <| Maybe.map
-          (\post ->
-            M.Connected
-              { state |
-                posts <- post :: state.posts
-              }
-          ) mpost
+        next = M.Connected
+          { state |
+            posts <- post :: state.posts
+          }
         task = Nothing
       in
         (next, task)
     _ ->
       (model, Nothing)
-
-jsonStringToPost : String -> Maybe M.Post
-jsonStringToPost =
-  let
-    toPost user time content =
-      { user = user
-      , time = time
-      , content = content
-      }
-    dec = JD.object3 toPost
-      ("user" := JD.string)
-      ("time" := JD.float)
-      ("content" := JD.string)
-  in
-    Result.toMaybe << JD.decodeString dec

@@ -3,6 +3,7 @@ module Chat.Main
   ) where
 
 import Html
+import Json.Encode as JE
 import Task
 
 import Chat.Action as A
@@ -11,51 +12,33 @@ import Chat.Task as T
 import Chat.Update as U
 import Chat.View as V
 import Lib.App as App
-import Lib.Mqtt as Mqtt
 
-actions : Signal.Mailbox (Maybe A.Action)
-actions = Signal.mailbox Nothing
-
-address : Signal.Address A.Action
-address = Signal.forwardTo actions.address Just
-
-mqtt : Mqtt.Mqtt
-mqtt = Mqtt.create
-  { address = address
-  , connected = Signal.map (always A.Connected) mqttConnected
-  , messageArrived = Signal.map A.MessageArrived mqttMessageArrived
-  }
-
-app : App.App A.Action
+app : App.App A.Action A.Task
 app = App.create
-  { signal = actions.signal
-  , address = address
-  , model = M.init
+  { model = M.init
   , update = U.update
   , view = V.view
-  , task = T.exec
-    { address = address
-    , mqtt =
-      { connect = mqtt.connect
-      , send = mqtt.send
-      }
-    }
   }
 
 main : Signal Html.Html
 main = app.main
 
-port mqttMessageArrived : Signal String
-port mqttConnected : Signal ()
+toJs : App.Actions String
+toJs = App.createActions Nothing
 
-port mqttConnect : Signal (Maybe Mqtt.MqttInfo)
-port mqttConnect = mqtt.ports.connect
+taskContext : T.Context
+taskContext =
+  { address = app.address
+  , js = toJs.address
+  }
 
-port mqttSend : Signal (Maybe String)
-port mqttSend = mqtt.ports.send
+port toElm : Signal JE.Value
 
-port execAppTask : Signal (Task.Task () ())
-port execAppTask = app.ports.task
+port fromElm : Signal (Maybe String)
+port fromElm = toJs.signal
 
-port execMqttTask : Signal (Task.Task () ())
-port execMqttTask = mqtt.ports.task
+port execTask : Signal (Task.Task () ())
+port execTask = Signal.mergeMany
+  [ App.execTask (T.exec taskContext) app.task
+  , Signal.map (T.execJs taskContext) toElm
+  ]

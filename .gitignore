@@ -2,10 +2,8 @@
 Thumbs.db
 
 /elm/elm-stuff
-/html/js/elm
 
 /server/project/project
 /server/project/target
 /server/target
 /server/src/main/resources/application.conf
-/server/src/main/webapp/static/js/elm
